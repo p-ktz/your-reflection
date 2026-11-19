@@ -1,0 +1,4 @@
+# The site in dist/ is hand-written source, not generated build output.
+dist/*.html -linguist-generated -linguist-vendored
+dist/*.css  -linguist-generated -linguist-vendored
+dist/*.js   -linguist-generated -linguist-vendored
