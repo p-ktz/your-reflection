@@ -138,6 +138,7 @@ The site is plain HTML, CSS, and JavaScript. Edit files in `dist/` to change the
 | Sample photos, video, and poster | [`dist/assets/`](dist/assets/) |
 | Six-digit demo code | `DEMO_CODE` in [`dist/app.js`](dist/app.js), the sample code displayed in [`dist/index.html`](dist/index.html), and the printed code in [`dist/gift-card.html`](dist/gift-card.html) |
 | Colors, type, layout, and effects | [`dist/styles.css`](dist/styles.css) and [`dist/gift-card.css`](dist/gift-card.css) |
+| Pearl position, preview transparency and blur, and hover size | The commented **MEMORY GLIMPSES CONTROLS** block and `.pearl-one` / `.pearl-two` / `.pearl-three` coordinates in [`dist/styles.css`](dist/styles.css). `--x` moves right, `--y` moves down; opacity `0.46` means 46% visible. The mobile hover size is set in the `max-width:650px` rule. |
 
 After changing files, restart the Python launcher or rebuild the Docker container. The launcher generates the QR automatically; do not hard-code a new address into the SVG.
 
