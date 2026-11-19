@@ -48,6 +48,20 @@ Without Docker, use `python3 launch_demo.py` (Windows: `py -3 launch_demo.py`). 
 
 This address is reachable only from the same network. Guest Wi-Fi may block devices from reaching one another; if a phone cannot open the card, check network isolation and whether the laptop's firewall allows TCP port `8765`.
 
+## Edit the front end with live reload
+
+For HTML, CSS, JavaScript, or media changes in `dist/`, start the local development mode instead of the regular Docker mode. It uses the same LAN URL and QR, reads `dist/` directly from your laptop, and reloads open pages within about a second after you save a file. Run this from the project directory (replace the IP with your laptop's LAN address):
+
+```bash
+PUBLIC_HOST=192.168.1.23 docker compose -f compose.yaml -f compose.dev.yaml up --build -d
+```
+
+On Windows PowerShell, set `$env:PUBLIC_HOST = "192.168.1.23"` first, then run `docker compose -f compose.yaml -f compose.dev.yaml up --build -d`. This command also switches an already running regular local container to development mode. Open `http://YOUR_LAN_IP:8765/` or the gift card; keep Docker running while editing. **Save files in `dist/` and the page refreshes automatically.** No further Docker builds are needed for those files. Your `?pearls=preview` mode and unlocked state survive the reload.
+
+Without Docker, stop any container using port `8765` and run `python3 launch_demo.py --watch --host YOUR_LAN_IP` (Windows: `py -3 launch_demo.py --watch --host YOUR_LAN_IP`). Regular Python mode also serves saved files immediately, but requires a manual browser refresh. Development mode uses an in-memory QR, so it does not overwrite the tracked QR asset. It is available only for the local demo.
+
+For a stable presentation build after editing, run `PUBLIC_HOST=YOUR_LAN_IP docker compose up --build -d`. Changes to `launch_demo.py` or Docker files still require restarting or rebuilding the container.
+
 ## Optional worldwide sharing with Docker
 
 You need [Docker](https://docs.docker.com/get-docker/) with Compose and an internet connection. Download or clone this repository, open a terminal in its root directory, and run the same command on Linux, macOS, or Windows:
@@ -140,7 +154,7 @@ The site is plain HTML, CSS, and JavaScript. Edit files in `dist/` to change the
 | Colors, type, layout, and effects | [`dist/styles.css`](dist/styles.css) and [`dist/gift-card.css`](dist/gift-card.css) |
 | Pearl position, preview transparency and blur, and hover size | The commented **MEMORY GLIMPSES CONTROLS** block and `.pearl-one` / `.pearl-two` / `.pearl-three` coordinates in [`dist/styles.css`](dist/styles.css). `--x` moves right, `--y` moves down; opacity `0.46` means 46% visible. The mobile hover size is set in the `max-width:650px` rule. |
 
-After changing files, restart the Python launcher or rebuild the Docker container. The launcher generates the QR automatically; do not hard-code a new address into the SVG.
+In live reload mode, save a file in `dist/` and the browser updates automatically. In regular Python mode, refresh the browser after editing `dist/`; regular Docker mode needs a rebuild. The launcher generates the QR automatically; do not hard-code a new address into the SVG.
 
 ## Demo scope, privacy, and publication
 

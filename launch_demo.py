@@ -7,6 +7,7 @@ import argparse
 import base64
 import binascii
 import hashlib
+import io
 import ipaddress
 import os
 import queue
@@ -77,7 +78,7 @@ def local_addresses() -> list[tuple[str, str]]:
     return []
 
 
-def make_qr(url: str) -> None:
+def render_qr(url: str) -> bytes:
     qr = qrcode.QRCode(
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=8,
@@ -86,6 +87,12 @@ def make_qr(url: str) -> None:
     )
     qr.add_data(url)
     qr.make(fit=True)
+    output = io.BytesIO()
+    qr.make_image().save(output)
+    return output.getvalue()
+
+
+def make_qr(url: str) -> None:
     # Readers never see a partially written SVG while a tunnel starts.
     descriptor, temporary_name = tempfile.mkstemp(
         prefix=".your-reflection-qr-", suffix=".svg", dir=QR_IMAGE.parent
@@ -93,15 +100,54 @@ def make_qr(url: str) -> None:
     os.close(descriptor)
     temporary = Path(temporary_name)
     try:
-        qr.make_image().save(temporary)
+        temporary.write_bytes(render_qr(url))
         temporary.replace(QR_IMAGE)
     finally:
         temporary.unlink(missing_ok=True)
 
 
+def site_version() -> str:
+    """Change when any served site file changes, excluding the generated QR."""
+    digest = hashlib.blake2s(digest_size=8)
+    for path in sorted(SITE.rglob("*")):
+        if not path.is_file() or path == QR_IMAGE or path.name.startswith(".your-reflection-qr-"):
+            continue
+        try:
+            metadata = path.stat()
+        except OSError:
+            continue  # An editor may replace a file while we scan it.
+        digest.update(f"{path.relative_to(SITE).as_posix()}:{metadata.st_mtime_ns}:{metadata.st_size}\n".encode())
+    return digest.hexdigest()
+
+
+LIVE_RELOAD_SCRIPT = """<script>
+(() => {
+  let version = "__SITE_VERSION__";
+  let checking = false;
+  async function checkForChanges() {
+    if (checking) return;
+    checking = true;
+    try {
+      const response = await fetch('/__dev/version', { cache: 'no-store' });
+      if (!response.ok) return;
+      const latest = (await response.text()).trim();
+      if (latest !== version) { location.reload(); return; }
+      version = latest;
+    } catch (_) { /* The server may be restarting. */ }
+    finally { checking = false; }
+  }
+  setInterval(checkForChanges, 800);
+  document.addEventListener('visibilitychange', checkForChanges);
+})();
+</script>"""
+
+
 class DemoHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, public_ready: threading.Event | None = None, **kwargs) -> None:
+    def __init__(self, *args, public_ready: threading.Event | None = None,
+                 live_reload: bool = False, qr_svg: bytes | None = None, **kwargs) -> None:
         self.public_ready = public_ready
+        self.live_reload = live_reload
+        self.qr_svg = qr_svg
         super().__init__(*args, **kwargs)
 
     def _public_card_is_ready(self) -> bool:
@@ -112,12 +158,46 @@ class DemoHandler(SimpleHTTPRequestHandler):
                 return False
         return True
 
+    def _send_live_content(self, content: bytes, content_type: str, head_only: bool) -> None:
+        self.send_response(200)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(content)))
+        self.end_headers()
+        if not head_only:
+            self.wfile.write(content)
+
+    def _serve_live_resource(self, head_only: bool) -> bool:
+        path = urlsplit(self.path).path
+        if path == "/__dev/version":
+            self._send_live_content(site_version().encode(), "text/plain; charset=utf-8", head_only)
+            return True
+        if path == "/assets/your-reflection-qr.svg" and self.qr_svg is not None:
+            self._send_live_content(self.qr_svg, "image/svg+xml", head_only)
+            return True
+        file_path = Path(self.translate_path(self.path))
+        if file_path.is_dir():
+            file_path /= "index.html"
+        if file_path.suffix != ".html" or not file_path.is_file():
+            return False
+        try:
+            source = file_path.read_bytes()
+        except OSError:
+            return False
+        script = LIVE_RELOAD_SCRIPT.replace("__SITE_VERSION__", site_version()).encode()
+        content = source.replace(b"</body>", script + b"\n</body>", 1)
+        self._send_live_content(content, "text/html; charset=utf-8", head_only)
+        return True
+
     def do_GET(self) -> None:
         if self._public_card_is_ready():
+            if self.live_reload and self._serve_live_resource(head_only=False):
+                return
             super().do_GET()
 
     def do_HEAD(self) -> None:
         if self._public_card_is_ready():
+            if self.live_reload and self._serve_live_resource(head_only=True):
+                return
             super().do_HEAD()
 
     def end_headers(self) -> None:
@@ -442,6 +522,7 @@ def main() -> None:
     parser.add_argument("--port", type=int, help="HTTP port (default: 8766 public, 8765 local)")
     parser.add_argument("--no-browser", action="store_true", help="Do not open a browser tab automatically")
     parser.add_argument("--prepare-only", action="store_true", help="Update the QR code and exit")
+    parser.add_argument("--watch", action="store_true", help="Reload local browser pages after site files change")
     args = parser.parse_args()
 
     if args.port is None:
@@ -452,6 +533,8 @@ def main() -> None:
     if args.public_provider != "cloudflare" and not args.public:
         parser.error("--public-provider requires --public")
     if args.public:
+        if args.watch:
+            parser.error("--watch is only available for a local demo")
         if args.host or args.prepare_only:
             parser.error("--public cannot be combined with --host or --prepare-only")
         run_public_demo(args, parser)
@@ -474,17 +557,24 @@ def main() -> None:
         parser.error("--bind must be an IPv4 address on this machine")
 
     url = f"http://{address}:{args.port}/"
-    make_qr(url)
-    print(f"Gift card QR updated: {url}", flush=True)
+    qr_svg = render_qr(url) if args.watch and not args.prepare_only else None
+    if qr_svg is None:
+        make_qr(url)
+        print(f"Gift card QR updated: {url}", flush=True)
+    else:
+        print(f"Gift card QR served: {url}", flush=True)
     if args.prepare_only:
         return
 
     try:
-        server = ThreadingHTTPServer((bind_address, args.port), partial(DemoHandler, directory=str(SITE)))
+        server = ThreadingHTTPServer((bind_address, args.port), partial(DemoHandler, directory=str(SITE),
+                                                              live_reload=args.watch, qr_svg=qr_svg))
     except OSError as exc:
         parser.error(f"could not start on port {args.port}: {exc}")
     print(f"Gift card: http://{address}:{args.port}/gift-card.html", flush=True)
     print(f"Guests on the same network: {url}", flush=True)
+    if args.watch:
+        print("Live reload is on: save a file in dist/ to refresh open pages automatically.", flush=True)
     print("Press Ctrl+C to stop sharing.", flush=True)
     if not args.no_browser:
         webbrowser.open(f"http://{address}:{args.port}/gift-card.html")

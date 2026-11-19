@@ -1,0 +1,16 @@
+services:
+  your-reflection:
+    volumes:
+      - type: bind
+        source: ./dist
+        target: /app/dist
+        read_only: true
+    command:
+      - --no-browser
+      - --watch
+      - --host
+      - "${PUBLIC_HOST:?Set PUBLIC_HOST to the laptop's LAN IP address}"
+      - --bind
+      - 0.0.0.0
+      - --port
+      - "8765"
