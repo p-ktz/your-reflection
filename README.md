@@ -34,15 +34,27 @@ The gift giver's upload and purchase flow is a **concept only**; this repository
 
 ## Run on the same Wi-Fi or LAN
 
-This is the recommended presentation setup. Connect the hosting laptop and the recipient's phone to the **same Wi-Fi or LAN** (a laptop hotspot also works). Find the laptop's LAN IPv4 address, then run the following command from the project directory. Replace `192.168.1.23` with that address:
+This is the recommended presentation setup. Install and start Docker with Compose, connect the hosting laptop and the recipient's phone to the **same Wi-Fi or LAN** (a laptop hotspot also works), then run the launcher for the hosting computer from the project directory:
+
+| Hosting computer | Run |
+| --- | --- |
+| Linux | `./start-linux.sh` |
+| macOS | `./start-macos.sh` |
+| Windows | Double-click `start-windows.cmd`, or run `powershell -NoProfile -ExecutionPolicy Bypass -File .\start-windows.ps1` in PowerShell. |
+
+Each launcher finds a LAN IPv4 address, builds and starts Docker Compose in the background, waits for the site to respond, and prints the **Site** and **Gift card** addresses. Open the gift card address in a browser to see the current QR. The six-digit demo code is **`271846`**. Keep the host computer and Docker running while others test. The first build may need internet to download the Python base image. Stop the demo with `docker compose down` from the project directory.
+
+If automatic IP selection picks the wrong adapter, pass the host computer's LAN IPv4 address explicitly: `./start-linux.sh --ip 192.168.1.23`, `./start-macos.sh --ip 192.168.1.23`, or `powershell -NoProfile -ExecutionPolicy Bypass -File .\start-windows.ps1 -HostIp 192.168.1.23`. The Windows `.cmd` launcher also accepts `-HostIp 192.168.1.23` when run from a terminal.
+
+You can also start Docker Compose manually. Replace `192.168.1.23` with the hosting computer's LAN IPv4 address:
 
 ```bash
 PUBLIC_HOST=192.168.1.23 docker compose up --build
 ```
 
-On Windows PowerShell, set `$env:PUBLIC_HOST = "192.168.1.23"` and then run `docker compose up --build`. Docker with Compose is required; the first image build may need internet to download the Python base image. Keep the laptop awake and the command running during the presentation.
+On Windows PowerShell, set `$env:PUBLIC_HOST = "192.168.1.23"` and then run `docker compose up --build`. This manual command keeps its terminal open while the demo runs; the launchers above run it in the background.
 
-Open `http://YOUR_LAN_IP:8765/gift-card.html` on the laptop. The card contains the freshly generated QR, which opens `http://YOUR_LAN_IP:8765/`. Scan it from a phone on the same network and enter **`271846`**. Stop the demo with `Ctrl+C` or `docker compose down`. If the laptop's IP changes, restart the demo and share the new QR.
+Open `http://YOUR_LAN_IP:8765/gift-card.html` on the laptop. The card contains the freshly generated QR, which opens `http://YOUR_LAN_IP:8765/`. Scan it from a phone on the same network and enter **`271846`**. Stop the manual foreground demo with `Ctrl+C` or `docker compose down`. If the laptop's IP changes, restart the demo and share the new QR.
 
 Without Docker, use `python3 launch_demo.py` (Windows: `py -3 launch_demo.py`). Python 3.10+ is required; no `pip install` is needed. The launcher detects the LAN IP and opens the card. On Linux/macOS, `./start-demo.sh` is another shortcut. If it selects the wrong network adapter, use `python3 launch_demo.py --host YOUR_LAN_IP`. Run `python3 launch_demo.py --help` for all options.
 
@@ -133,6 +145,11 @@ The launcher starts a local server and tunnel, checks the public experience, the
 ├── docs/screenshots/     README previews
 ├── launch_demo.py        Local HTTP server and QR generator
 ├── start-demo.sh         Linux/macOS launcher shortcut
+├── start-linux.sh        One-command Linux Docker launcher
+├── start-macos.sh        One-command macOS Docker launcher
+├── start-windows.ps1     One-command Windows Docker launcher
+├── start-windows.cmd     Double-click Windows launcher
+├── scripts/              Shared Linux/macOS Docker launcher logic
 ├── Dockerfile            Container image
 ├── compose.yaml          Portable Docker run configuration
 ├── Dockerfile.public     Cloudflare tunnel image
