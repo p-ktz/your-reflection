@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f8f7f2">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Your Reflection: an intimate, interactive gift experience inspired by the Perlée collection.">
+    <title>Your Reflection — A Perlée Gift Experience</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body class="is-locked">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="page-grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="wordmark" href="./" aria-label="Your Reflection, home">
+        <span class="wordmark-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span class="wordmark-name">Your Reflection</span>
+      </a>
+      <div class="header-center" aria-label="Inspired by the Perlée collection">PERLÉE <span></span> A GIFT EXPERIENCE</div>
+      <a class="header-link" href="gift-card.html">The gift card <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main id="main">
+      <section id="gate" class="gate" aria-labelledby="gate-title">
+        <div class="gate-art" aria-hidden="true">
+          <div class="gate-art-glow"></div>
+          <div class="gate-art-rim gate-art-rim-outer"></div>
+          <div class="gate-art-rim gate-art-rim-inner"></div>
+          <img src="assets/bracelet.webp" alt="" class="gate-bracelet">
+          <div class="gate-art-spark gate-art-spark-one"></div>
+          <div class="gate-art-spark gate-art-spark-two"></div>
+          <span class="gate-art-caption">A STORY INSIDE EVERY PEARL</span>
+        </div>
+
+        <div class="gate-copy">
+          <div class="section-overline"><span class="small-diamond" aria-hidden="true"></span> A PERSONAL GIFT, JUST FOR YOU</div>
+          <h1 id="gate-title">Some gifts are<br><em>felt forever.</em></h1>
+          <p class="gate-lead">A bracelet, a little light, and the moments she chose to keep close to you.</p>
+          <form id="access-form" class="access-form" novalidate>
+            <label for="access-code">Enter the six-digit code from your gift</label>
+            <div class="code-row">
+              <input id="access-code" name="gift-number" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" aria-describedby="code-help code-error" placeholder="••••••" required>
+              <button type="submit" class="unlock-button"><span>Unlock your story</span><span class="button-glint" aria-hidden="true"></span></button>
+            </div>
+            <p id="code-help" class="code-help">For this presentation, the code is <button id="fill-code" type="button">271846</button>.</p>
+            <p id="code-error" class="code-error" role="alert" aria-live="polite"></p>
+          </form>
+          <div class="gate-footnote"><span class="footnote-line"></span> FROM HER HEART TO YOURS</div>
+        </div>
+      </section>
+
+      <div id="experience" class="experience" hidden>
+        <section id="bracelet-stage" class="bracelet-stage" aria-labelledby="experience-title">
+          <div class="stage-topline"><span>YOUR REFLECTION</span><span class="topline-rule"></span><span>AN INTIMATE JOURNEY</span></div>
+          <div class="stage-grid">
+            <div class="stage-copy">
+              <div class="section-overline"><span class="small-diamond" aria-hidden="true"></span> A MESSAGE FROM HER</div>
+              <h1 id="experience-title">The moments<br>that make you <em>you.</em></h1>
+              <p>Every golden pearl holds a memory she never wanted you to forget. Touch the light, and let the story unfold.</p>
+              <button id="begin-exploring" class="text-action" type="button">Explore the first memory <span class="action-line" aria-hidden="true"></span></button>
+            </div>
+
+            <div class="jewel-wrap">
+              <div class="jewel-aura" aria-hidden="true"></div>
+              <div class="jewel-rim jewel-rim-one" aria-hidden="true"></div>
+              <div class="jewel-rim jewel-rim-two" aria-hidden="true"></div>
+              <div class="jewel-rim jewel-rim-three" aria-hidden="true"></div>
+              <div class="jewel-stage" id="jewel-stage">
+                <img class="bracelet-image" src="assets/bracelet.webp" alt="Perlée pearls of gold bracelet, with three glowing pearls that open memories.">
+                <button class="pearl-hotspot pearl-one" type="button" data-memory="0" aria-label="Open memory: The light you carry">
+                  <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">THE LIGHT YOU CARRY</span>
+                </button>
+                <button class="pearl-hotspot pearl-two" type="button" data-memory="1" aria-label="Open memory: The joy you share">
+                  <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">THE JOY YOU SHARE</span>
+                </button>
+                <button class="pearl-hotspot pearl-three" type="button" data-memory="2" aria-label="Open memory: Tonight and every tomorrow">
+                  <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">EVERY TOMORROW</span>
+                </button>
+              </div>
+              <p class="jewel-caption">SELECT A GLOWING PEARL TO REVEAL A MEMORY</p>
+            </div>
+
+            <aside class="stage-index" aria-label="Choose a memory">
+              <div class="index-heading">Three moments,<br><em>one story.</em></div>
+              <div class="memory-index">
+                <button type="button" data-memory="0"><span class="index-pearl" aria-hidden="true"></span><span>The light you carry</span><span class="index-indicator" aria-hidden="true">+</span></button>
+                <button type="button" data-memory="1"><span class="index-pearl" aria-hidden="true"></span><span>The joy you share</span><span class="index-indicator" aria-hidden="true">+</span></button>
+                <button type="button" data-memory="2"><span class="index-pearl" aria-hidden="true"></span><span>Every tomorrow</span><span class="index-indicator" aria-hidden="true">+</span></button>
+              </div>
+              <span class="index-footnote">A love that stays with you</span>
+            </aside>
+          </div>
+          <a href="#letter" class="scroll-hint">A note from her <span aria-hidden="true">↓</span></a>
+        </section>
+
+        <section id="letter" class="letter-section" aria-labelledby="letter-title">
+          <div class="letter-ornament" aria-hidden="true"><span></span></div>
+          <div class="section-overline">A NOTE TO CARRY WITH YOU</div>
+          <h2 id="letter-title">“My darling, may you always see<br>what I see in you.”</h2>
+          <p>In every bright moment, every gathering, every new beginning: a little part of my love goes with you.</p>
+          <div class="letter-signature">Always, Mom <span aria-hidden="true">✧</span></div>
+        </section>
+
+        <section class="discover-section" aria-labelledby="discover-title">
+          <div class="discover-media"><img src="assets/bracelet.webp" alt="Perlée pearls of gold bracelet"></div>
+          <div class="discover-copy">
+            <div class="section-overline">THE STORY CONTINUES</div>
+            <h2 id="discover-title">The beauty of<br><em>what we keep.</em></h2>
+            <p>Inspired by Perlée, where polished golden beads catch and reflect the light. A keepsake becomes a place for memories to live.</p>
+            <a class="discover-link" href="https://www.vancleefarpels.com/ae/en/collections/jewelry/perlee.html" target="_blank" rel="noopener noreferrer">Discover the Perlée collection <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-mark">Your Reflection</div>
+      <p>An independent concept demo inspired by Van Cleef & Arpels Perlée.</p>
+      <a href="gift-card.html">View sample gift card</a>
+    </footer>
+
+    <div id="memory-overlay" class="memory-overlay" hidden>
+      <div class="memory-scrim" data-close-memory></div>
+      <section class="memory-dialog" role="dialog" aria-modal="true" aria-labelledby="memory-title" aria-describedby="memory-description">
+        <div class="dialog-topbar"><span>YOUR REFLECTION <span class="dialog-topbar-star" aria-hidden="true">✧</span> A MOMENT IN TIME</span><button class="dialog-close" type="button" data-close-memory aria-label="Close memory"><span></span><span></span></button></div>
+        <div class="dialog-body">
+          <div class="memory-media-panel">
+            <div class="memory-media-halo" aria-hidden="true"></div>
+            <div class="memory-media-frame"><img id="memory-image" alt="" hidden><video id="memory-video" controls playsinline preload="metadata" aria-label="A personal celebration memory" aria-describedby="video-description" hidden><track kind="captions" src="assets/celebration.vtt" srclang="en" label="English" default></video></div>
+            <p id="video-description" class="sr-only">Friends gather outdoors at night around a young woman with a lit candle, smiling and celebrating together.</p>
+            <span class="media-corner media-corner-tl" aria-hidden="true"></span><span class="media-corner media-corner-br" aria-hidden="true"></span>
+          </div>
+          <div class="memory-copy-panel">
+            <div class="memory-progress" id="memory-progress"></div>
+            <p id="memory-announcement" class="sr-only" aria-live="polite" aria-atomic="true"></p>
+            <div class="section-overline"><span class="small-diamond" aria-hidden="true"></span> A MEMORY, JUST FOR YOU</div>
+            <h2 id="memory-title"></h2>
+            <p id="memory-description"></p>
+            <div class="memory-note"><span class="note-quote" aria-hidden="true">“</span><p id="memory-note"></p></div>
+            <div class="dialog-nav"><button id="previous-memory" type="button">Previous</button><span class="dialog-nav-line" aria-hidden="true"></span><button id="next-memory" type="button">Next memory <span aria-hidden="true">→</span></button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
