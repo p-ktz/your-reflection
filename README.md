@@ -29,39 +29,49 @@ The gift giver's upload and purchase flow is a **concept only**; this repository
 - Responsive desktop and mobile layouts, pearl hover/focus states, subtle motion, and a memory dialog.
 - Keyboard navigation, touch swipe, visible focus, reduced-motion support, and captions for the video.
 - A printable gift card whose QR is regenerated for the current public or local address when the demo starts.
-- One-command public HTTPS sharing through a temporary [Cloudflare Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/), plus a local-only mode. Fonts, media, and the QR generator are bundled; the site itself does not need an API or database.
+- One-command public HTTPS sharing through a temporary tunnel, plus a local-only mode. Fonts, media, and the QR generator are bundled; the site itself does not need an API or database.
 
 ## Share worldwide with Docker
 
 You need [Docker](https://docs.docker.com/get-docker/) with Compose and an internet connection. Download or clone this repository, open a terminal in its root directory, and run the same command on Linux, macOS, or Windows:
 
 ```console
-docker compose -f compose.public.yaml up --build
+docker compose -f compose.localhostrun.yaml up --build
 ```
 
 Wait for the terminal to print **Public site**, **Public gift card**, and **Public QR image** URLs. Open the public gift card on your laptop, then send its QR image or a screenshot of the card to someone **anywhere with internet access**. They scan it and enter **`271846`**. The local card is also available at `http://127.0.0.1:8766/gift-card.html` on the hosting computer.
 
-No Cloudflare account, domain, same-Wi-Fi connection, or inbound port forwarding is needed for this demo mode. The public URL is temporary: it **changes on every start** and stops working when the tunnel or host stops. Keep Docker and the host computer online during the presentation. Stop with `Ctrl+C` or `docker compose -f compose.public.yaml down`; rebuild after editing with the command above.
+No account, domain, same-Wi-Fi connection, or inbound port forwarding is needed for this demo mode. The [localhost.run free tunnel](https://localhost.run/docs/forever-free) provides a temporary HTTPS address; its domain can change, and free traffic has a speed limit. Keep Docker and the host computer online during the presentation. Stop with `Ctrl+C` or `docker compose -f compose.localhostrun.yaml down`. Start it again and share its **new** QR if the address expires or the tunnel disconnects.
 
-**Why Cloudflare?** A QR only opens a URL; the laptop's local address cannot be reached from another network. Quick Tunnel gives this demo a temporary public URL without router setup. For a real deployment, use a public server with a stable domain, HTTPS, and proper access control; [Quick Tunnels have no uptime guarantee](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+**Why a tunnel?** A QR only opens a URL; the laptop's local address cannot be reached from another network. A tunnel gives the demo a public address without router setup. For a real deployment, use a public server with a stable domain, HTTPS, and proper access control. Public demo traffic, including the sample photos and video, passes through the tunnel provider; [localhost.run terminates HTTPS](https://localhost.run/docs/http-tunnels).
+
+### Cloudflare alternative
+
+The original [Cloudflare Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) mode remains available:
+
+```console
+docker compose -f compose.public.yaml up --build
+```
+
+It uses the same local port and cannot run alongside the localhost.run Compose mode. [Quick Tunnels have no uptime guarantee](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/). If a QR opens **Cloudflare Error 1033**, the tunnel connector is unavailable: check the terminal logs, restart the tunnel, and share the newly generated QR. If the error persists, use the localhost.run mode or a public server. The QR and six-digit code cannot repair an unavailable tunnel.
 
 ## Share worldwide without Docker
 
-You need **Python 3.10+**, a modern browser, and [`cloudflared` installed](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/). No `pip install` is required.
+You need **Python 3.10+**, a modern browser, and OpenSSH for localhost.run. No `pip install` is required. For the Cloudflare alternative, install [`cloudflared`](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/).
 
 **Linux / macOS**
 
 ```bash
-python3 launch_demo.py --public
+python3 launch_demo.py --public --public-provider localhost-run
 ```
 
 **Windows PowerShell**
 
 ```powershell
-py -3 launch_demo.py --public
+py -3 launch_demo.py --public --public-provider localhost-run
 ```
 
-The launcher starts a local server and a Cloudflare tunnel, waits for the public link to connect, then refreshes the QR. It prints the public URLs and opens the card on the host. Keep the terminal open; press `Ctrl+C` to stop.
+The launcher starts a local server and tunnel, checks the public experience, then refreshes the QR. It prints the public URLs and opens the card on the host. Keep the terminal open; press `Ctrl+C` to stop. To use Cloudflare, omit `--public-provider localhost-run`.
 
 ## Local-only mode
 
@@ -88,8 +98,9 @@ Run `python3 launch_demo.py --help` for the full launcher options. If the host a
 
 | Problem | Check |
 | --- | --- |
-| The public URL does not appear | Check the host's internet connection and the `cloudflared` messages in the terminal. The public mode needs outbound access to Cloudflare. |
-| A sent QR stopped working | Quick Tunnel URLs change on restart. Start the demo again and send the newly generated QR or public gift card URL. |
+| The public URL does not appear | Check the host's internet connection and tunnel messages in the terminal. The default Docker mode needs outbound SSH access to localhost.run; the Cloudflare mode needs outbound access to Cloudflare. |
+| A sent QR stopped working | Temporary tunnel URLs can expire or change on restart. Start the demo again and send the newly generated QR or public gift card URL. |
+| Cloudflare Error 1033 | Cloudflare cannot find a healthy tunnel connector. Confirm the host and container are running, inspect tunnel logs, then restart and share the new QR. If it persists, use the localhost.run mode or a public server. |
 | The phone cannot open a local-only QR | Confirm both devices use the same network, the host is running, and TCP port `8765` is allowed by the host firewall. Guest Wi-Fi may isolate devices. |
 | A demo port is in use | Local mode uses `8765`; public mode uses `8766`. Stop the process using that port or pass `--port` for native Python. For Docker, keep the container port, Compose mapping, and launcher `--port` value aligned; in local mode, the QR must show the host's reachable port. |
 | Local Docker says `PUBLIC_HOST` is missing | Set that variable in the same terminal before running the **local** `docker compose up --build` command. The public Compose file does not need it. |
@@ -107,8 +118,10 @@ Run `python3 launch_demo.py --help` for the full launcher options. If the host a
 ├── start-demo.sh         Linux/macOS launcher shortcut
 ├── Dockerfile            Container image
 ├── compose.yaml          Portable Docker run configuration
-├── Dockerfile.public     Image with the Cloudflare tunnel client
-├── compose.public.yaml   Worldwide demo via temporary HTTPS tunnel
+├── Dockerfile.public     Cloudflare tunnel image
+├── Dockerfile.localhostrun  Cloudflare-free SSH tunnel image
+├── compose.public.yaml   Cloudflare Quick Tunnel mode
+├── compose.localhostrun.yaml  localhost.run tunnel mode
 └── vendor/               Bundled QR library and license notices
 ```
 
@@ -127,7 +140,7 @@ After changing files, restart the Python launcher or rebuild the Docker containe
 
 ## Demo scope, privacy, and publication
 
-The six-digit code is a **visual demo step, not authentication**. In public mode, the sample photos and video are served as ordinary static files to anyone who has the temporary URL or requests their asset paths. Use only media you are comfortable sharing through this tunnel. A production version would need purchase-linked authorization, private media storage, consent, retention rules, and secure delivery.
+The six-digit code is a **visual demo step, not authentication**. In public mode, the sample photos and video are served as ordinary static files to anyone who has the temporary URL or requests their asset paths. The tunnel provider can also process the traffic. Use only media you are comfortable sharing this way. A production version would need purchase-linked authorization, private media storage, consent, retention rules, and secure delivery.
 
 **Before publishing this repository publicly**, review the rights and consent for every image and video in `dist/assets/` and for any screenshots in `docs/screenshots/`; replace them if needed. The bracelet artwork is concept imagery, not an official product photograph. The card and website both link to the official collection, and both identify this as an independent demo.
 

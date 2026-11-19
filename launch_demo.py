@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
+import hashlib
 import ipaddress
 import os
 import queue
@@ -20,7 +23,9 @@ import webbrowser
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
+from urllib.request import Request, urlopen
 
 
 PROJECT = Path(__file__).resolve().parent
@@ -121,6 +126,10 @@ class DemoHandler(SimpleHTTPRequestHandler):
 
 
 def run_public_demo(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    if args.public_provider == "localhost-run":
+        run_localhost_run_demo(args, parser)
+        return
+
     cloudflared = shutil.which("cloudflared")
     if cloudflared is None:
         parser.error(
@@ -238,13 +247,194 @@ def run_public_demo(args: argparse.Namespace, parser: argparse.ArgumentParser) -
         server.server_close()
 
 
+LOCALHOST_RUN_HOST = "localhost.run"
+LOCALHOST_RUN_ED25519_FINGERPRINT = "SHA256:pG6qrBxubYfWa1Zadu/V0NUgjEDiBds/7e2xzte/QNM"
+LOCALHOST_RUN_URL = re.compile(r"https://[a-z0-9-]+\.app\.lhr\.life/?(?![a-z0-9.-])", re.IGNORECASE)
+
+
+def verified_localhost_run_host_key(path: Path) -> None:
+    """Pin the official SSH key before letting SSH forward any requests."""
+    try:
+        result = subprocess.run(
+            ["ssh-keyscan", "-T", "10", "-t", "ed25519", LOCALHOST_RUN_HOST],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise RuntimeError(f"Could not retrieve the localhost.run SSH host key: {exc}") from exc
+
+    verified_lines = []
+    for line in result.stdout.splitlines():
+        fields = line.split()
+        if len(fields) < 3 or fields[0] != LOCALHOST_RUN_HOST or fields[1] != "ssh-ed25519":
+            continue
+        try:
+            key = base64.b64decode(fields[2], validate=True)
+        except (ValueError, binascii.Error):
+            continue
+        fingerprint = "SHA256:" + base64.b64encode(hashlib.sha256(key).digest()).decode().rstrip("=")
+        if fingerprint == LOCALHOST_RUN_ED25519_FINGERPRINT:
+            verified_lines.append(" ".join(fields[:3]))
+
+    if not verified_lines:
+        raise RuntimeError(
+            "localhost.run's SSH host key does not match its published fingerprint; "
+            "refusing to create a tunnel."
+        )
+    path.write_text("\n".join(verified_lines) + "\n", encoding="ascii")
+    path.chmod(0o600)
+
+
+def public_site_is_healthy(url: str) -> bool:
+    """Require the real demo page over HTTPS before publishing a QR to it."""
+    try:
+        request = Request(url, headers={"User-Agent": "YourReflectionDemo/1.0"})
+        with urlopen(request, timeout=8) as response:
+            return (
+                response.status == 200
+                and urlsplit(response.geturl()).hostname == urlsplit(url).hostname
+                and b"Your Reflection" in response.read(128 * 1024)
+            )
+    except (HTTPError, URLError, TimeoutError, OSError):
+        return False
+
+
+def run_localhost_run_demo(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    ssh = shutil.which("ssh")
+    keyscan = shutil.which("ssh-keyscan")
+    if ssh is None or keyscan is None:
+        parser.error(
+            "OpenSSH client and ssh-keyscan are required for --public-provider localhost-run; "
+            "use 'docker compose -f compose.localhostrun.yaml up --build'"
+        )
+
+    bind_address = args.bind or "127.0.0.1"
+    try:
+        ipaddress.IPv4Address(bind_address)
+    except ipaddress.AddressValueError:
+        parser.error("--bind must be an IPv4 address on this machine")
+
+    ready = threading.Event()
+    try:
+        server = ThreadingHTTPServer(
+            (bind_address, args.port),
+            partial(DemoHandler, directory=str(SITE), public_ready=ready),
+        )
+    except OSError as exc:
+        parser.error(f"could not start on port {args.port}: {exc}")
+
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    origin_host = "127.0.0.1" if bind_address == "0.0.0.0" else bind_address
+    tunnel = None
+    try:
+        with tempfile.TemporaryDirectory(prefix="your-reflection-ssh-") as key_dir:
+            known_hosts = Path(key_dir) / "known_hosts"
+            verified_localhost_run_host_key(known_hosts)
+            command = [
+                ssh,
+                "-T",
+                "-o", "BatchMode=yes",
+                "-o", "ExitOnForwardFailure=yes",
+                "-o", "ServerAliveInterval=15",
+                "-o", "ServerAliveCountMax=2",
+                "-o", "StrictHostKeyChecking=yes",
+                "-o", f"UserKnownHostsFile={known_hosts}",
+                "-o", "GlobalKnownHostsFile=/dev/null",
+                "-o", "HostKeyAlgorithms=ssh-ed25519",
+                "-R", f"80:{origin_host}:{args.port}",
+                "nokey@localhost.run",
+            ]
+            print("Starting a temporary localhost.run HTTPS tunnel...", flush=True)
+            tunnel = subprocess.Popen(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+            )
+            output: queue.Queue[str | None] = queue.Queue()
+
+            def read_tunnel_output() -> None:
+                assert tunnel is not None and tunnel.stdout is not None
+                for line in tunnel.stdout:
+                    output.put(line.rstrip())
+                output.put(None)
+
+            threading.Thread(target=read_tunnel_output, daemon=True).start()
+            public_url = None
+            deadline = time.monotonic() + 75
+            while time.monotonic() < deadline:
+                try:
+                    line = output.get(timeout=0.5)
+                except queue.Empty:
+                    if tunnel.poll() is not None:
+                        break
+                    if public_url and public_site_is_healthy(public_url):
+                        break
+                    continue
+                if line is None:
+                    break
+                # localhost.run prints a large ANSI QR in the terminal; the
+                # gift card already contains the current QR once ready.
+                if "\x1b[" not in line and "Open your tunnel address on your mobile with this QR" not in line:
+                    print(f"[localhost.run] {line}", flush=True)
+                if public_url is None:
+                    match = LOCALHOST_RUN_URL.search(line)
+                    if match:
+                        public_url = match.group(0).rstrip("/") + "/"
+
+            if public_url is None or tunnel.poll() is not None or not public_site_is_healthy(public_url):
+                raise RuntimeError(
+                    "The localhost.run link did not serve the demo successfully. "
+                    "Check the tunnel messages above and try again."
+                )
+
+            make_qr(public_url)
+            ready.set()
+            print(f"Public site: {public_url}", flush=True)
+            print(f"Public gift card: {public_url}gift-card.html", flush=True)
+            print(f"Public QR image: {public_url}assets/your-reflection-qr.svg", flush=True)
+            print(f"Local gift card: http://{origin_host}:{args.port}/gift-card.html", flush=True)
+            print("Share the public gift card or its QR; press Ctrl+C to stop.", flush=True)
+            if not args.no_browser:
+                webbrowser.open(f"http://{origin_host}:{args.port}/gift-card.html")
+
+            while tunnel.poll() is None:
+                try:
+                    line = output.get(timeout=0.5)
+                except queue.Empty:
+                    continue
+                if line is not None:
+                    print(f"[localhost.run] {line}", flush=True)
+            raise RuntimeError("The public tunnel stopped; its QR link is no longer available.")
+    except KeyboardInterrupt:
+        print("\nPublic demo stopped.", flush=True)
+    except RuntimeError as exc:
+        parser.exit(1, f"Public demo error: {exc}\n")
+    finally:
+        ready.clear()
+        if tunnel is not None and tunnel.poll() is None:
+            tunnel.terminate()
+            try:
+                tunnel.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                tunnel.kill()
+                tunnel.wait(timeout=5)
+        server.shutdown()
+        server.server_close()
+
+
 def stop_on_sigterm(_signum: int, _frame: object) -> None:
     raise KeyboardInterrupt
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Launch Your Reflection locally or on a temporary public URL.")
-    parser.add_argument("--public", action="store_true", help="Create a temporary worldwide HTTPS link with cloudflared")
+    parser.add_argument("--public", action="store_true", help="Create a temporary worldwide HTTPS link")
+    parser.add_argument("--public-provider", choices=("cloudflare", "localhost-run"), default="cloudflare",
+                        help="Temporary tunnel provider for --public (default: cloudflare)")
     parser.add_argument("--tunnel-protocol", choices=("http2", "auto"), default="http2",
                         help="Cloudflare transport for --public (default: http2 for restricted networks)")
     parser.add_argument("--host", help="LAN IPv4 address or domain to show in the QR code (auto-detected by default)")
@@ -259,6 +449,8 @@ def main() -> None:
     if not 1 <= args.port <= 65535:
         parser.error("the port must be between 1 and 65535")
     signal.signal(signal.SIGTERM, stop_on_sigterm)
+    if args.public_provider != "cloudflare" and not args.public:
+        parser.error("--public-provider requires --public")
     if args.public:
         if args.host or args.prepare_only:
             parser.error("--public cannot be combined with --host or --prepare-only")

@@ -1,0 +1,19 @@
+services:
+  your-reflection:
+    build:
+      context: .
+      dockerfile: Dockerfile.localhostrun
+    command:
+      - --public
+      - --public-provider
+      - localhost-run
+      - --no-browser
+      - --bind
+      - 0.0.0.0
+      - --port
+      - "8766"
+    # Local preview only; remote visitors use the SSH tunnel's HTTPS URL.
+    ports:
+      - "127.0.0.1:8766:8766"
+    init: true
+    stop_grace_period: 5s
