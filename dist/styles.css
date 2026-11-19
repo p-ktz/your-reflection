@@ -81,12 +81,14 @@ img,video{max-width:100%;display:block}
 .text-action:hover .action-line{width:36px}
 .jewel-wrap{position:relative;display:grid;place-items:center;isolation:isolate;align-self:center;min-width:0;aspect-ratio:1;max-width:690px;width:100%;margin:auto}
 /* MEMORY GLIMPSES CONTROLS: edit these values to tune the three preview pearls.
-   Opacity uses 0–1: .46 means 46% visible. Blur uses pixels; 0px is sharp.
-   Hover scale multiplies the normal circle diameter (2.25 ≈ 81px on desktop).
-   Hover image zoom near 1 reveals more of the photo than the normal pearl crop. */
+   Opacity uses 0–1: .50 means 50% visible. Blur uses pixels; 0px is sharp.
+   Hover scale multiplies the normal circle diameter (3 ≈ 108px on desktop).
+   Hover image zoom near 1 reveals more of the photo than the normal pearl crop.
+   Increase tooltip lift to move the memory label farther above the enlarged circle. */
 .jewel-wrap{
-  --preview-hover-scale:20.5;
+  --preview-hover-scale:3;
   --preview-hover-image-zoom:1.07;
+  --preview-tooltip-lift:40px;
   --preview-opacity-low:.50;
   --preview-opacity-high:.75;
   --preview-hover-opacity-low:.80;
@@ -107,15 +109,15 @@ img,video{max-width:100%;display:block}
 /* Hotspot centers on the bracelet: increase --x to move right, --y to move down.
    --preview-zoom crops the photo inside the small circle; --preview-light brightens it. */
 .pearl-one{
-  --x:31.5%;--y:58.4%;
+  --x:31.5%;--y:59%;
   --delay:.7s;--preview-delay:0s;--preview-zoom:1.4;--preview-light:1.2;
 }
 .pearl-two{
-  --x:50%;--y:60.1%;
+  --x:49.9%;--y:60.1%;
   --delay:1s;--preview-delay:-1.35s;--preview-zoom:1.35;--preview-light:1.08;
 }
 .pearl-three{
-  --x:68%;--y:58.4%;
+  --x:68%;--y:59%;
   --delay:1.3s;--preview-delay:-2.7s;--preview-zoom:1.4;--preview-light:1.65;
 }
 .hotspot-zoom{position:absolute;inset:3px;transform:scale(1);transform-origin:center;transition:transform .38s cubic-bezier(.2,.75,.2,1)}
@@ -126,6 +128,7 @@ img,video{max-width:100%;display:block}
 .pearl-hotspot.is-visited .hotspot-core{background:radial-gradient(circle at 28% 28%,#fffdf5 0%,#f9e5ae 38%,#d19b54 78%,#7e552e 100%)}
 .pearl-hotspot:hover .hotspot-pulse,.pearl-hotspot:focus-visible .hotspot-pulse{background:rgba(255,242,202,.68);box-shadow:0 0 0 12px rgba(202,160,92,.17),0 0 40px rgba(226,180,96,.75)}
 .hotspot-tooltip{position:absolute;z-index:8;bottom:calc(100% + 11px);left:50%;transform:translate(-50%,7px);padding:10px 14px;background:var(--forest);color:#f8f1dc;white-space:nowrap;font-size:.63rem;letter-spacing:.16em;font-weight:700;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;box-shadow:0 7px 25px rgba(29,42,39,.18)}
+.jewel-wrap[data-pearl-mode="preview"] .hotspot-tooltip{bottom:calc(100% + 11px + var(--preview-tooltip-lift))}
 .hotspot-tooltip:after{content:"";position:absolute;left:calc(50% - 4px);bottom:-4px;width:8px;height:8px;background:var(--forest);transform:rotate(45deg)}
 .pearl-hotspot:hover .hotspot-tooltip,.pearl-hotspot:focus-visible .hotspot-tooltip{opacity:1;transform:translate(-50%,0)}
 .pearl-mode-switch{position:absolute;z-index:8;left:50%;bottom:33px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:4px;background:rgba(255,253,247,.88);border:1px solid rgba(142,119,78,.28);border-radius:999px;box-shadow:0 7px 24px rgba(80,68,42,.09);backdrop-filter:blur(10px);white-space:nowrap}
@@ -224,7 +227,7 @@ img,video{max-width:100%;display:block}
 @media(max-width:900px){.gate-bracelet{width:min(85%,600px);height:auto;max-width:none}}
 @media(max-width:650px){.gate-bracelet{width:92%;height:auto;max-width:none}}
 @media(max-width:650px){.stage-copy{padding-top:26px}.stage-copy h1{font-size:clamp(3.25rem,12vw,4.5rem);margin:18px auto}.stage-copy p{font-size:.95rem;padding:0 5px}.stage-topline{font-size:.69rem;letter-spacing:.08em}.section-overline{font-size:.75rem;letter-spacing:.15em}.jewel-caption{font-size:.7rem;letter-spacing:.09em}.memory-index button{font-size:.88rem}.dialog-topbar{font-size:.66rem}}
-@media(max-width:650px){.letter-section h2{width:100%;max-width:18ch;font-size:clamp(2.7rem,8.5vw,4.3rem);line-height:1.05}.jewel-wrap{--preview-hover-scale:1.65}.pearl-mode-switch{bottom:31px}.pearl-mode-switch button{padding:7px 10px;font-size:.62rem}}
+@media(max-width:650px){.letter-section h2{width:100%;max-width:18ch;font-size:clamp(2.7rem,8.5vw,4.3rem);line-height:1.05}.jewel-wrap{--preview-hover-scale:2.5;--preview-tooltip-lift:26px}.pearl-mode-switch{bottom:31px}.pearl-mode-switch button{padding:7px 10px;font-size:.62rem}}
 @media(max-width:370px){.pearl-mode-switch button{padding:7px 8px;font-size:.58rem}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 @media(prefers-reduced-motion:reduce){.jewel-wrap[data-pearl-mode="preview"] .hotspot-pulse,.jewel-wrap[data-pearl-mode="preview"] .hotspot-preview{animation:none!important}.jewel-wrap[data-pearl-mode="preview"] .hotspot-preview{opacity:var(--preview-opacity-high);filter:blur(var(--preview-blur-high)) brightness(var(--preview-light,1.2)) saturate(.9)}.jewel-wrap[data-pearl-mode="preview"] .pearl-hotspot:hover .hotspot-preview,.jewel-wrap[data-pearl-mode="preview"] .pearl-hotspot:focus-visible .hotspot-preview{opacity:var(--preview-hover-opacity-high);filter:blur(var(--preview-hover-blur-high))}}
