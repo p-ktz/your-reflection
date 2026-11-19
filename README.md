@@ -43,7 +43,7 @@ Wait for the terminal to print **Public site**, **Public gift card**, and **Publ
 
 No Cloudflare account, domain, same-Wi-Fi connection, or inbound port forwarding is needed for this demo mode. The public URL is temporary: it **changes on every start** and stops working when the tunnel or host stops. Keep Docker and the host computer online during the presentation. Stop with `Ctrl+C` or `docker compose -f compose.public.yaml down`; rebuild after editing with the command above.
 
-Cloudflare describes Quick Tunnels as a testing and development feature with no uptime guarantee. For a stable URL or a production service, use a named tunnel and a domain instead. See [Cloudflare's Quick Tunnel documentation](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
+**Why Cloudflare?** A QR only opens a URL; the laptop's local address cannot be reached from another network. Quick Tunnel gives this demo a temporary public URL without router setup. For a real deployment, use a public server with a stable domain, HTTPS, and proper access control; [Quick Tunnels have no uptime guarantee](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/).
 
 ## Share worldwide without Docker
 
