@@ -89,12 +89,12 @@ img,video{max-width:100%;display:block}
   --preview-hover-scale:3;
   --preview-hover-image-zoom:1.07;
   --preview-tooltip-lift:40px;
-  --preview-opacity-low:.50;
+  --preview-opacity-low:.1;
   --preview-opacity-high:.75;
-  --preview-hover-opacity-low:.80;
-  --preview-hover-opacity-high:.95;
-  --preview-blur-low:1.35px;
-  --preview-blur-high:.5px;
+  --preview-hover-opacity-low:1;
+  --preview-hover-opacity-high:1;
+  --preview-blur-low:.1px;
+  --preview-blur-high:.4px;
   --preview-hover-blur-low:.4px;
   --preview-hover-blur-high:0px;
   --preview-duration:4.05s;
