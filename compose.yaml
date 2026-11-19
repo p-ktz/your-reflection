@@ -1,0 +1,13 @@
+services:
+  your-reflection:
+    build: .
+    ports:
+      - "8765:8765"
+    command:
+      - --no-browser
+      - --host
+      - "${PUBLIC_HOST:?Set PUBLIC_HOST to an IP address or hostname reachable from the scanning phone}"
+      - --bind
+      - 0.0.0.0
+      - --port
+      - "8765"

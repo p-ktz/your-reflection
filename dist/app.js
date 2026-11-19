@@ -38,6 +38,7 @@ const dialog = overlay.querySelector(".memory-dialog");
 const closeButton = overlay.querySelector(".dialog-close");
 const memoryImage = document.getElementById("memory-image");
 const memoryVideo = document.getElementById("memory-video");
+const videoDescription = document.getElementById("video-description");
 const memoryTitle = document.getElementById("memory-title");
 const memoryDescription = document.getElementById("memory-description");
 const memoryNote = document.getElementById("memory-note");
@@ -106,6 +107,7 @@ function renderMemory(index) {
   memoryVideo.pause();
   memoryVideo.hidden = true;
   memoryImage.hidden = true;
+  videoDescription.hidden = memory.type !== "video";
   memoryVideo.removeAttribute("src");
   memoryVideo.load();
 

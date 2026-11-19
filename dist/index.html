@@ -7,9 +7,8 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Your Reflection: an intimate, interactive gift experience inspired by the Perlée collection.">
     <title>Your Reflection — A Perlée Gift Experience</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="fonts.css">
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
   </head>
@@ -22,7 +21,7 @@
         <span class="wordmark-icon" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
         <span class="wordmark-name">Your Reflection</span>
       </a>
-      <div class="header-center" aria-label="Inspired by the Perlée collection">PERLÉE <span></span> A GIFT EXPERIENCE</div>
+      <a class="header-center" href="https://www.vancleefarpels.com/ae/en/collections/jewelry/perlee.html" target="_blank" rel="noopener noreferrer" aria-label="Visit the official Perlée collection">PERLÉE <span></span> OFFICIAL COLLECTION ↗</a>
       <a class="header-link" href="gift-card.html">The gift card <span aria-hidden="true">↗</span></a>
     </header>
 
@@ -72,14 +71,14 @@
               <div class="jewel-rim jewel-rim-two" aria-hidden="true"></div>
               <div class="jewel-rim jewel-rim-three" aria-hidden="true"></div>
               <div class="jewel-stage" id="jewel-stage">
-                <img class="bracelet-image" src="assets/bracelet.webp" alt="Perlée pearls of gold bracelet, with three glowing pearls that open memories.">
+                <img class="bracelet-image" src="assets/bracelet.webp" alt="Gold beaded bracelet concept, with three glowing pearls that open memories.">
                 <button class="pearl-hotspot pearl-one" type="button" data-memory="0" aria-label="Open memory: The light you carry">
                   <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">THE LIGHT YOU CARRY</span>
                 </button>
                 <button class="pearl-hotspot pearl-two" type="button" data-memory="1" aria-label="Open memory: The joy you share">
                   <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">THE JOY YOU SHARE</span>
                 </button>
-                <button class="pearl-hotspot pearl-three" type="button" data-memory="2" aria-label="Open memory: Tonight and every tomorrow">
+                <button class="pearl-hotspot pearl-three" type="button" data-memory="2" aria-label="Open memory: Every tomorrow">
                   <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">EVERY TOMORROW</span>
                 </button>
               </div>
@@ -108,7 +107,7 @@
         </section>
 
         <section class="discover-section" aria-labelledby="discover-title">
-          <div class="discover-media"><img src="assets/bracelet.webp" alt="Perlée pearls of gold bracelet"></div>
+          <div class="discover-media"><img src="assets/bracelet.webp" alt="Gold beaded bracelet concept inspired by Perlée"></div>
           <div class="discover-copy">
             <div class="section-overline">THE STORY CONTINUES</div>
             <h2 id="discover-title">The beauty of<br><em>what we keep.</em></h2>
@@ -122,7 +121,7 @@
     <footer class="site-footer">
       <div class="footer-mark">Your Reflection</div>
       <p>An independent concept demo inspired by Van Cleef & Arpels Perlée.</p>
-      <a href="gift-card.html">View sample gift card</a>
+      <a href="https://www.vancleefarpels.com/ae/en/collections/jewelry/perlee.html" target="_blank" rel="noopener noreferrer">Visit the official Perlée collection ↗</a>
     </footer>
 
     <div id="memory-overlay" class="memory-overlay" hidden>
@@ -133,7 +132,7 @@
           <div class="memory-media-panel">
             <div class="memory-media-halo" aria-hidden="true"></div>
             <div class="memory-media-frame"><img id="memory-image" alt="" hidden><video id="memory-video" controls playsinline preload="metadata" aria-label="A personal celebration memory" aria-describedby="video-description" hidden><track kind="captions" src="assets/celebration.vtt" srclang="en" label="English" default></video></div>
-            <p id="video-description" class="sr-only">Friends gather outdoors at night around a young woman with a lit candle, smiling and celebrating together.</p>
+            <p id="video-description" class="sr-only" hidden>Friends gather outdoors at night around a young woman with a lit candle, smiling and celebrating together.</p>
             <span class="media-corner media-corner-tl" aria-hidden="true"></span><span class="media-corner media-corner-br" aria-hidden="true"></span>
           </div>
           <div class="memory-copy-panel">

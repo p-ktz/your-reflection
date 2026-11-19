@@ -1,0 +1,11 @@
+.git
+.gitignore
+__pycache__
+*.py[cod]
+.DS_Store
+*.swp
+*.swo
+Dockerfile
+compose.yaml
+README.md
+start-demo.sh
