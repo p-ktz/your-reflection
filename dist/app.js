@@ -3,27 +3,30 @@ const DEMO_CODE = "271846";
 const memories = [
   {
     title: "The light you carry",
-    description: "I remember watching you step into your own light. The room felt brighter simply because you were in it.",
-    note: "You have always been my brightest reflection.",
+    description: "I remember that evening by the sea, when the world slowed down and there was nowhere else I wanted to be.",
+    note: "Wherever you go, there will always be a place beside me.",
     type: "image",
-    src: "assets/auditorium.jpg",
-    alt: "A young woman at an event in an auditorium"
+    src: "assets/memory-seaside.jpg",
+    preview: "assets/memory-seaside-preview.jpg",
+    alt: "A mother and daughter sitting together by the sea at sunset"
   },
   {
     title: "The joy you share",
-    description: "The people around you are part of your story, too. I love seeing how easily you make a moment feel warm and unforgettable.",
-    note: "May you always be surrounded by this kind of joy.",
+    description: "The little adventures we took together are still my favorite stories. You made ordinary days feel golden.",
+    note: "Keep finding joy in the smallest moments.",
     type: "image",
-    src: "assets/friends.jpg",
-    alt: "Three friends sharing a moment together"
+    src: "assets/memory-together.jpg",
+    preview: "assets/memory-together-preview.jpg",
+    alt: "A mother and young daughter walking hand in hand toward the sea"
   },
   {
     title: "Every tomorrow",
-    description: "A celebration to hold close, and a reminder that there is so much more light ahead of you.",
-    note: "Wherever life takes you, my love goes with you.",
+    description: "Every new day feels full of possibility when I think of you. This horizon is a wish for all the beautiful chapters ahead.",
+    note: "Every tomorrow, my love goes with you.",
     type: "video",
-    src: "assets/celebration.mp4",
-    poster: "assets/celebration-poster.jpg"
+    src: "assets/memory-tomorrow.mp4",
+    preview: "assets/memory-tomorrow-preview.jpg",
+    poster: "assets/memory-tomorrow-poster.jpg"
   }
 ];
 
@@ -60,7 +63,7 @@ document.querySelectorAll(".pearl-hotspot").forEach((button) => {
   const memory = memories[Number(button.dataset.memory)];
   const preview = document.createElement("img");
   preview.className = "hotspot-preview";
-  preview.src = memory.poster || memory.src;
+  preview.src = memory.preview || memory.poster || memory.src;
   preview.alt = "";
   preview.setAttribute("aria-hidden", "true");
   preview.loading = "lazy";

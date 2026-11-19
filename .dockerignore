@@ -5,6 +5,10 @@ __pycache__
 .DS_Store
 *.swp
 *.swo
+.env
+.env.*
+dist/assets/your-reflection-qr.svg
+dist/assets/.your-reflection-qr-*.svg
 Dockerfile
 compose.yaml
 compose.dev.yaml

@@ -1,3 +1,24 @@
+# Local Python and editor files
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.idea/
+.vscode/
+*.swp
+*.swo
 .DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local configuration and output
+.env
+.env.*
+!.env.example
+*.log
+
+# Generated for the host computer's current LAN address
+dist/assets/your-reflection-qr.svg
+dist/assets/.your-reflection-qr-*.svg
