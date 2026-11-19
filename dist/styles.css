@@ -85,12 +85,12 @@ img,video{max-width:100%;display:block}
    Hover scale multiplies the normal circle diameter (2.25 ≈ 81px on desktop).
    Hover image zoom near 1 reveals more of the photo than the normal pearl crop. */
 .jewel-wrap{
-  --preview-hover-scale:2.25;
+  --preview-hover-scale:20.5;
   --preview-hover-image-zoom:1.07;
-  --preview-opacity-low:.46;
-  --preview-opacity-high:.72;
-  --preview-hover-opacity-low:.72;
-  --preview-hover-opacity-high:.9;
+  --preview-opacity-low:.50;
+  --preview-opacity-high:.75;
+  --preview-hover-opacity-low:.80;
+  --preview-hover-opacity-high:.95;
   --preview-blur-low:1.35px;
   --preview-blur-high:.5px;
   --preview-hover-blur-low:.4px;
