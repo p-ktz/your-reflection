@@ -48,12 +48,44 @@ const previousButton = document.getElementById("previous-memory");
 const nextButton = document.getElementById("next-memory");
 const jewelWrap = document.querySelector(".jewel-wrap");
 const jewelCaption = document.querySelector(".jewel-caption");
+const pearlModeButtons = [...document.querySelectorAll("[data-pearl-mode-option]")];
 const backgroundRegions = [document.querySelector(".site-header"), document.querySelector("main"), document.querySelector(".site-footer")];
 
 let activeMemory = 0;
 let returnFocus = null;
 let touchStartX = null;
 const revealedMemories = new Set();
+
+document.querySelectorAll(".pearl-hotspot").forEach((button) => {
+  const memory = memories[Number(button.dataset.memory)];
+  const preview = document.createElement("img");
+  preview.className = "hotspot-preview";
+  preview.src = memory.poster || memory.src;
+  preview.alt = "";
+  preview.setAttribute("aria-hidden", "true");
+  preview.loading = "lazy";
+  preview.decoding = "async";
+  button.querySelector(".hotspot-pulse").appendChild(preview);
+});
+
+function setPearlMode(mode, updateUrl = false) {
+  const selectedMode = mode === "preview" ? "preview" : "glow";
+  jewelWrap.dataset.pearlMode = selectedMode;
+  pearlModeButtons.forEach((button) => {
+    button.setAttribute("aria-pressed", String(button.dataset.pearlModeOption === selectedMode));
+  });
+  if (updateUrl) {
+    const url = new URL(window.location.href);
+    if (selectedMode === "preview") url.searchParams.set("pearls", "preview");
+    else url.searchParams.delete("pearls");
+    window.history.replaceState(window.history.state, "", url);
+  }
+}
+
+setPearlMode(new URLSearchParams(window.location.search).get("pearls"));
+pearlModeButtons.forEach((button) => {
+  button.addEventListener("click", () => setPearlMode(button.dataset.pearlModeOption, true));
+});
 
 function unlockExperience() {
   gate.hidden = true;

@@ -40,7 +40,7 @@
         <div class="gate-copy">
           <div class="section-overline"><span class="small-diamond" aria-hidden="true"></span> A PERSONAL GIFT, JUST FOR YOU</div>
           <h1 id="gate-title">Some gifts are<br><em>felt forever.</em></h1>
-          <p class="gate-lead">A bracelet, a little light, and the moments she chose to keep close to you.</p>
+          <p class="gate-lead">A bracelet, a little light, and the moments she chose to share with you.</p>
           <form id="access-form" class="access-form" novalidate>
             <label for="access-code">Enter the six-digit code from your gift</label>
             <div class="code-row">
@@ -65,7 +65,7 @@
               <button id="begin-exploring" class="text-action" type="button">Explore the first memory <span class="action-line" aria-hidden="true"></span></button>
             </div>
 
-            <div class="jewel-wrap">
+            <div class="jewel-wrap" data-pearl-mode="glow">
               <div class="jewel-aura" aria-hidden="true"></div>
               <div class="jewel-rim jewel-rim-one" aria-hidden="true"></div>
               <div class="jewel-rim jewel-rim-two" aria-hidden="true"></div>
@@ -82,7 +82,11 @@
                   <span class="hotspot-pulse" aria-hidden="true"></span><span class="hotspot-core" aria-hidden="true"></span><span class="hotspot-tooltip">EVERY TOMORROW</span>
                 </button>
               </div>
-              <p class="jewel-caption">SELECT A GLOWING PEARL TO REVEAL A MEMORY</p>
+              <div class="pearl-mode-switch" role="group" aria-label="Pearl appearance">
+                <button type="button" data-pearl-mode-option="glow" aria-pressed="true"><span class="mode-swatch mode-swatch-glow" aria-hidden="true"></span>Golden glow</button>
+                <button type="button" data-pearl-mode-option="preview" aria-pressed="false"><span class="mode-swatch mode-swatch-preview" aria-hidden="true"></span>Memory glimpses</button>
+              </div>
+              <p class="jewel-caption">SELECT A PEARL TO REVEAL A MEMORY</p>
             </div>
 
             <aside class="stage-index" aria-label="Choose a memory">
@@ -101,8 +105,8 @@
         <section id="letter" class="letter-section" aria-labelledby="letter-title">
           <div class="letter-ornament" aria-hidden="true"><span></span></div>
           <div class="section-overline">A NOTE TO CARRY WITH YOU</div>
-          <h2 id="letter-title">“My darling, may you always see<br>what I see in you.”</h2>
-          <p>In every bright moment, every gathering, every new beginning: a little part of my love goes with you.</p>
+          <h2 id="letter-title">“My darling, may you always see what I see in you.”</h2>
+          <p>In every bright moment, every gathering, and every new beginning, a little part of my love goes with you.</p>
           <div class="letter-signature">Always, Mom <span aria-hidden="true">✧</span></div>
         </section>
 
@@ -131,7 +135,7 @@
         <div class="dialog-body">
           <div class="memory-media-panel">
             <div class="memory-media-halo" aria-hidden="true"></div>
-            <div class="memory-media-frame"><img id="memory-image" alt="" hidden><video id="memory-video" controls playsinline preload="metadata" aria-label="A personal celebration memory" aria-describedby="video-description" hidden><track kind="captions" src="assets/celebration.vtt" srclang="en" label="English" default></video></div>
+            <div class="memory-media-frame"><img id="memory-image" alt="" hidden><video id="memory-video" controls playsinline preload="metadata" aria-label="A personal celebration memory" aria-describedby="video-description" hidden></video></div>
             <p id="video-description" class="sr-only" hidden>Friends gather outdoors at night around a young woman with a lit candle, smiling and celebrating together.</p>
             <span class="media-corner media-corner-tl" aria-hidden="true"></span><span class="media-corner media-corner-br" aria-hidden="true"></span>
           </div>

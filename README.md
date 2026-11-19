@@ -27,7 +27,8 @@ The gift giver's upload and purchase flow is a **concept only**; this repository
 ### What is included
 
 - Responsive desktop and mobile layouts, pearl hover/focus states, subtle motion, and a memory dialog.
-- Keyboard navigation, touch swipe, visible focus, reduced-motion support, and captions for the video.
+- Two switchable bracelet styles: golden glow and animated, softly blurred memory previews. The video preview uses its poster frame.
+- Keyboard navigation, touch swipe, visible focus, reduced-motion support, and an accessible description of the video.
 - A printable gift card whose QR is regenerated for the current address when the demo starts.
 - A local network demo that runs on the hosting laptop, with optional public tunnel modes retained for reference. Fonts, media, and the QR generator are bundled; the site itself does not need an API or database.
 
@@ -94,7 +95,7 @@ The launcher starts a local server and tunnel, checks the public experience, the
 1. Start the local Docker or Python mode and wait for the LAN URLs to appear.
 2. Open the gift card URL and select **Print this sample card** if you want a physical insert.
 3. Give the recipient the current QR and code **`271846`**. Their phone must be on the same network as the laptop.
-4. Have the recipient select each of the three glowing pearls, then follow the link to the official collection.
+4. Compare **Golden glow** and **Memory glimpses** below the bracelet, select each of the three pearls, then follow the link to the official collection. You can open the preview mode directly with `?pearls=preview` after the site URL.
 
 ### Troubleshooting
 
@@ -114,7 +115,7 @@ The launcher starts a local server and tunnel, checks the public experience, the
 ├── dist/                 Website, gift card, fonts, and sample media
 │   ├── index.html        Recipient experience
 │   ├── gift-card.html    Printable concept insert
-│   └── assets/           Bracelet artwork, memories, captions, and QR
+│   └── assets/           Bracelet artwork, memories, video poster, and QR
 ├── docs/screenshots/     README previews
 ├── launch_demo.py        Local HTTP server and QR generator
 ├── start-demo.sh         Linux/macOS launcher shortcut
@@ -134,7 +135,7 @@ The site is plain HTML, CSS, and JavaScript. Edit files in `dist/` to change the
 | Change | Where |
 | --- | --- |
 | Memory titles, messages, and media order | The `memories` array in [`dist/app.js`](dist/app.js) |
-| Sample photos, video, poster, and captions | [`dist/assets/`](dist/assets/) |
+| Sample photos, video, and poster | [`dist/assets/`](dist/assets/) |
 | Six-digit demo code | `DEMO_CODE` in [`dist/app.js`](dist/app.js), the sample code displayed in [`dist/index.html`](dist/index.html), and the printed code in [`dist/gift-card.html`](dist/gift-card.html) |
 | Colors, type, layout, and effects | [`dist/styles.css`](dist/styles.css) and [`dist/gift-card.css`](dist/gift-card.css) |
 
