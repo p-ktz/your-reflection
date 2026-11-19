@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
-"""Run Your Reflection on this laptop and refresh the gift card's LAN QR code."""
+"""Run Your Reflection locally or share it through a temporary public tunnel."""
 
 from __future__ import annotations
 
 import argparse
 import ipaddress
+import os
+import queue
 import re
+import shutil
+import signal
 import socket
 import subprocess
 import sys
+import tempfile
+import threading
+import time
 import webbrowser
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 
 PROJECT = Path(__file__).resolve().parent
@@ -73,26 +81,189 @@ def make_qr(url: str) -> None:
     )
     qr.add_data(url)
     qr.make(fit=True)
-    qr.make_image().save(QR_IMAGE)
+    # Readers never see a partially written SVG while a tunnel starts.
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=".your-reflection-qr-", suffix=".svg", dir=QR_IMAGE.parent
+    )
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        qr.make_image().save(temporary)
+        temporary.replace(QR_IMAGE)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 class DemoHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, public_ready: threading.Event | None = None, **kwargs) -> None:
+        self.public_ready = public_ready
+        super().__init__(*args, **kwargs)
+
+    def _public_card_is_ready(self) -> bool:
+        if self.public_ready is not None and not self.public_ready.is_set():
+            path = urlsplit(self.path).path
+            if path in ("/gift-card.html", "/assets/your-reflection-qr.svg"):
+                self.send_error(503, "The public QR code is being prepared")
+                return False
+        return True
+
+    def do_GET(self) -> None:
+        if self._public_card_is_ready():
+            super().do_GET()
+
+    def do_HEAD(self) -> None:
+        if self._public_card_is_ready():
+            super().do_HEAD()
+
     def end_headers(self) -> None:
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
 
+def run_public_demo(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    cloudflared = shutil.which("cloudflared")
+    if cloudflared is None:
+        parser.error(
+            "cloudflared is required for --public; install it or use "
+            "'docker compose -f compose.public.yaml up --build'"
+        )
+
+    bind_address = args.bind or "127.0.0.1"
+    try:
+        ipaddress.IPv4Address(bind_address)
+    except ipaddress.AddressValueError:
+        parser.error("--bind must be an IPv4 address on this machine")
+
+    ready = threading.Event()
+    try:
+        server = ThreadingHTTPServer(
+            (bind_address, args.port),
+            partial(DemoHandler, directory=str(SITE), public_ready=ready),
+        )
+    except OSError as exc:
+        parser.error(f"could not start on port {args.port}: {exc}")
+
+    server_thread = threading.Thread(target=server.serve_forever, daemon=True)
+    server_thread.start()
+    origin_host = "127.0.0.1" if bind_address == "0.0.0.0" else bind_address
+    command = [
+        cloudflared,
+        "tunnel",
+        "--no-autoupdate",
+        "--protocol",
+        args.tunnel_protocol,
+        "--url",
+        f"http://{origin_host}:{args.port}",
+    ]
+    print("Starting a temporary public HTTPS tunnel...", flush=True)
+    tunnel = None
+    try:
+        tunnel = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        output: queue.Queue[str | None] = queue.Queue()
+
+        def read_tunnel_output() -> None:
+            assert tunnel is not None and tunnel.stdout is not None
+            for line in tunnel.stdout:
+                output.put(line.rstrip())
+            output.put(None)
+
+        threading.Thread(target=read_tunnel_output, daemon=True).start()
+        public_url = None
+        connected = False
+        banner_seen = False
+        deadline = time.monotonic() + 75
+        while not (public_url and connected) and time.monotonic() < deadline:
+            try:
+                line = output.get(timeout=0.5)
+            except queue.Empty:
+                if tunnel.poll() is not None:
+                    break
+                continue
+            if line is None:
+                break
+            print(f"[cloudflared] {line}", flush=True)
+            if "your quick tunnel has been created" in line.lower():
+                banner_seen = True
+            if banner_seen and public_url is None:
+                match = re.search(r"https://(?!api\.)[a-z0-9-]+\.trycloudflare\.com/?", line, re.IGNORECASE)
+                if match:
+                    public_url = match.group(0).rstrip("/") + "/"
+            if "registered tunnel connection" in line.lower():
+                connected = True
+
+        if public_url is None or not connected:
+            raise RuntimeError(
+                "The public tunnel did not become ready. Check internet access "
+                "and the cloudflared messages above."
+            )
+
+        make_qr(public_url)
+        ready.set()
+        print(f"Public site: {public_url}", flush=True)
+        print(f"Public gift card: {public_url}gift-card.html", flush=True)
+        print(f"Public QR image: {public_url}assets/your-reflection-qr.svg", flush=True)
+        print(f"Local gift card: http://{origin_host}:{args.port}/gift-card.html", flush=True)
+        print("Share the public gift card or its QR; press Ctrl+C to stop.", flush=True)
+        if not args.no_browser:
+            webbrowser.open(f"http://{origin_host}:{args.port}/gift-card.html")
+
+        while tunnel.poll() is None:
+            try:
+                line = output.get(timeout=0.5)
+            except queue.Empty:
+                continue
+            if line is not None:
+                print(f"[cloudflared] {line}", flush=True)
+        raise RuntimeError("The public tunnel stopped; its QR link is no longer available.")
+    except KeyboardInterrupt:
+        print("\nPublic demo stopped.", flush=True)
+    except RuntimeError as exc:
+        parser.exit(1, f"Public demo error: {exc}\n")
+    finally:
+        ready.clear()
+        if tunnel is not None and tunnel.poll() is None:
+            tunnel.terminate()
+            try:
+                tunnel.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                tunnel.kill()
+                tunnel.wait(timeout=5)
+        server.shutdown()
+        server.server_close()
+
+
+def stop_on_sigterm(_signum: int, _frame: object) -> None:
+    raise KeyboardInterrupt
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Launch Your Reflection on the local network.")
+    parser = argparse.ArgumentParser(description="Launch Your Reflection locally or on a temporary public URL.")
+    parser.add_argument("--public", action="store_true", help="Create a temporary worldwide HTTPS link with cloudflared")
+    parser.add_argument("--tunnel-protocol", choices=("http2", "auto"), default="http2",
+                        help="Cloudflare transport for --public (default: http2 for restricted networks)")
     parser.add_argument("--host", help="LAN IPv4 address or domain to show in the QR code (auto-detected by default)")
     parser.add_argument("--bind", help="IPv4 address to listen on (defaults to the selected LAN address)")
-    parser.add_argument("--port", type=int, default=8765, help="HTTP port (default: 8765)")
+    parser.add_argument("--port", type=int, help="HTTP port (default: 8766 public, 8765 local)")
     parser.add_argument("--no-browser", action="store_true", help="Do not open a browser tab automatically")
     parser.add_argument("--prepare-only", action="store_true", help="Update the QR code and exit")
     args = parser.parse_args()
 
+    if args.port is None:
+        args.port = 8766 if args.public else 8765
     if not 1 <= args.port <= 65535:
         parser.error("the port must be between 1 and 65535")
+    signal.signal(signal.SIGTERM, stop_on_sigterm)
+    if args.public:
+        if args.host or args.prepare_only:
+            parser.error("--public cannot be combined with --host or --prepare-only")
+        run_public_demo(args, parser)
+        return
     available = local_addresses()
     address = args.host or (available[0][1] if available else None)
     if address is None:

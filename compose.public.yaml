@@ -1,0 +1,10 @@
+services:
+  your-reflection:
+    build:
+      context: .
+      dockerfile: Dockerfile.public
+    # Only local previews use this port; visitors reach the HTTPS tunnel.
+    ports:
+      - "127.0.0.1:8766:8766"
+    init: true
+    stop_grace_period: 5s
