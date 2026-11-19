@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY launch_demo.py ./
+COPY server.py ./
 COPY vendor ./vendor
 COPY dist ./dist
 
@@ -15,5 +15,5 @@ USER app
 
 EXPOSE 8765
 
-ENTRYPOINT ["python", "launch_demo.py"]
+ENTRYPOINT ["python", "server.py"]
 CMD ["--no-browser", "--bind", "0.0.0.0", "--port", "8765"]

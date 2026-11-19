@@ -9,7 +9,7 @@ services:
       - --no-browser
       - --watch
       - --host
-      - "${PUBLIC_HOST:?Set PUBLIC_HOST to the laptop's LAN IP address}"
+      - "${PUBLIC_HOST:-127.0.0.1}"
       - --bind
       - 0.0.0.0
       - --port

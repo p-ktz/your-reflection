@@ -148,7 +148,7 @@ try {
         }
 
         $missing = @()
-        foreach ($file in @('compose.yaml', 'Dockerfile', 'launch_demo.py')) {
+        foreach ($file in @('compose.yaml', 'Dockerfile', 'server.py')) {
             if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot $file) -PathType Leaf)) {
                 $missing += $file
             }

@@ -13,4 +13,3 @@ Dockerfile
 compose.yaml
 compose.dev.yaml
 README.md
-start-demo.sh

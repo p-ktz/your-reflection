@@ -86,7 +86,7 @@ fi
 command -v docker >/dev/null 2>&1 || die 'Docker is not installed. Install Docker Desktop or Docker Engine with Compose.'
 docker compose version >/dev/null 2>&1 || die 'Docker Compose is unavailable. Install or update Docker with the Compose plugin.'
 docker info --format '{{.ServerVersion}}' >/dev/null 2>&1 || die 'Docker Engine is not running or this user cannot access it. Start Docker and check Docker permissions.'
-[[ -f "$project_dir/compose.yaml" && -f "$project_dir/Dockerfile" && -f "$project_dir/launch_demo.py" && -d "$project_dir/dist" && -d "$project_dir/vendor" ]] || die 'Project files are missing. Run the launcher from a complete copy of Your Reflection.'
+[[ -f "$project_dir/compose.yaml" && -f "$project_dir/Dockerfile" && -f "$project_dir/server.py" && -d "$project_dir/dist" && -d "$project_dir/vendor" ]] || die 'Project files are missing. Run the launcher from a complete copy of Your Reflection.'
 
 if [[ -n "$override_ip" ]]; then
   selected_ip="$override_ip"
